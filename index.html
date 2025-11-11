@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>UPI Payment Demo</title>
+  <style>
+    body { text-align: center; font-family: Arial; }
+    .qr { margin: 20px; }
+    .btn { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <h2>Pay via UPI</h2>
+  <p>Scan the QR code below to pay:</p>
+  <div class="qr">
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=yourupiid@okaxis&pn=YourName&am=100&cu=INR" alt="UPI QR">
+  </div>
+
+  <button class="btn" onclick="showStatus('success')">I’ve Paid</button>
+  <button class="btn" onclick="showStatus('failed')">Payment Failed</button>
+
+  <h3 id="status"></h3>
+
+  <script>
+    function showStatus(type) {
+      const status = document.getElementById('status');
+      if (type === 'success') {
+        status.textContent = '✅ Payment Successful!';
+        status.style.color = 'green';
+      } else {
+        status.textContent = '❌ Payment Failed!';
+        status.style.color = 'red';
+      }
+    }
+  </script>
+</body>
+</html>
