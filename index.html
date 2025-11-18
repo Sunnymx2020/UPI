@@ -1,37 +1,77 @@
 <!DOCTYPE html>
-
 <html>
 <head>
-  <title>UPI Payment Demo</title>
-  <style>
-    body { text-align: center; font-family: Arial; }
-    .qr { margin: 20px; }
-    .btn { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; border-radius: 5px; }
-  </style>
+<meta charset="UTF-8">
+<title>P2P Chat - No Server</title>
+<style>
+  body{font-family:sans-serif;max-width:600px;margin:auto;padding:20px;}
+  textarea{width:100%;height:80px;}
+  #log{border:1px solid #ccc;height:200px;overflow:auto;padding:10px;margin-top:10px;}
+</style>
 </head>
 <body>
-  <h2>Pay via UPI</h2>
-  <p>Scan the QR code below to pay:</p>
-  <div class="qr">
-    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=yourupiid@okaxis&pn=YourName&am=100&cu=INR" alt="UPI QR">
-  </div>
+<h2>Realtime Chat (No Server - WebRTC P2P)</h2>
 
-  <button class="btn" onclick="showStatus('success')">I’ve Paid</button>
-  <button class="btn" onclick="showStatus('failed')">Payment Failed</button>
+<button id="createOffer">Create Offer</button>
+<textarea id="offer" placeholder="Offer will appear here"></textarea>
 
-  <h3 id="status"></h3>
+<button id="setAnswer">Set Answer</button>
+<textarea id="answer" placeholder="Paste Answer here"></textarea>
 
-  <script>
-    function showStatus(type) {
-      const status = document.getElementById('status');
-      if (type === 'success') {
-        status.textContent = '✅ Payment Successful!';
-        status.style.color = 'green';
-      } else {
-        status.textContent = '❌ Payment Failed!';
-        status.style.color = 'red';
-      }
-    }
-  </script>
+<hr>
+
+<div id="chat" style="display:none;">
+  <div id="log"></div>
+  <input id="msg" type="text" placeholder="Type message…">
+  <button id="send">Send</button>
+</div>
+
+<script>
+let pc = new RTCPeerConnection();
+let channel = pc.createDataChannel("chat");
+
+channel.onmessage = e => {
+  log("Friend: " + e.data);
+};
+
+pc.onicecandidate = e => {
+  if(e.candidate) return;
+  offer.value = JSON.stringify(pc.localDescription);
+};
+
+pc.ondatachannel = e => {
+  channel = e.channel;
+  channel.onmessage = ev => log("Friend: " + ev.data);
+};
+
+function log(t){
+  logDiv.innerHTML += t + "<br>";
+  logDiv.scrollTop = logDiv.scrollHeight;
+}
+
+createOffer.onclick = async () => {
+  let desc = await pc.createOffer();
+  await pc.setLocalDescription(desc);
+};
+
+setAnswer.onclick = async () => {
+  let ans = JSON.parse(answer.value);
+  await pc.setRemoteDescription(ans);
+  document.getElementById("chat").style.display = "block";
+};
+
+send.onclick = () => {
+  let text = msg.value;
+  channel.send(text);
+  log("Me: " + text);
+  msg.value = "";
+};
+
+msg.addEventListener("keypress", e => {
+  if(e.key === "Enter") send.click();
+});
+
+</script>
 </body>
 </html>
+
